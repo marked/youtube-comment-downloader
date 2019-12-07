@@ -15,14 +15,7 @@ pip3 install -r requirements.txt
 
 ### Usage
 ```
-usage: downloader.py [--help] [--youtubeid YOUTUBEID] [--output OUTPUT]
+usage: downloader.py YOUTUBE_VIDEO_ID
 
 Download Youtube comments without using the Youtube API
 
-optional arguments:
-  --help, -h            Show this help message and exit
-  --youtubeid YOUTUBEID, -y YOUTUBEID
-                        ID of Youtube video for which to download the comments
-  --output OUTPUT, -o OUTPUT
-                        Output filename (output format is line delimited JSON)
-```
