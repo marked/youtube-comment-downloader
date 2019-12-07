@@ -7,9 +7,9 @@ import sys
 import time
 import json
 import requests
-import argparse
 import lxml.html
 import io
+import re
 
 from lxml.cssselect import CSSSelector
 
@@ -26,18 +26,20 @@ def find_value(html, key, num_chars=2):
 
 
 def extract_comments(html):
+    for match in re.findall("UC[0-9A-Za-z-_]{10,30}\"", html):
+        print(match[:-1])
     tree = lxml.html.fromstring(html)
     item_sel = CSSSelector('.comment-item')
     text_sel = CSSSelector('.comment-text-content')
     time_sel = CSSSelector('.time')
     author_sel = CSSSelector('.user-name')
+    
 
     for item in item_sel(tree):
         yield {'cid': item.get('data-cid'),
                'text': text_sel(item)[0].text_content(),
                'time': time_sel(item)[0].text_content().strip(),
                'author': author_sel(item)[0].text_content()}
-
 
 def extract_reply_cids(html):
     tree = lxml.html.fromstring(html)
@@ -55,7 +57,7 @@ def ajax_request(session, url, params, data, retries=10, sleep=20):
             time.sleep(sleep)
 
 
-def download_comments(youtube_id, sleep=1):
+def download_comments(youtube_id, sleep=0):
     session = requests.Session()
     session.headers['User-Agent'] = USER_AGENT
 
@@ -129,39 +131,26 @@ def download_comments(youtube_id, sleep=1):
 
 
 def main(argv):
-    parser = argparse.ArgumentParser(add_help=False, description=('Download Youtube comments without using the Youtube API'))
-    parser.add_argument('--help', '-h', action='help', default=argparse.SUPPRESS, help='Show this help message and exit')
-    parser.add_argument('--youtubeid', '-y', help='ID of Youtube video for which to download the comments')
-    parser.add_argument('--output', '-o', help='Output filename (output format is line delimited JSON)')
-    parser.add_argument('--limit', '-l', type=int, help='Limit the number of comments')
-
     try:
-        args = parser.parse_args(argv)
+        youtube_id = sys.argv[1]
 
-        youtube_id = args.youtubeid
-        output = args.output
-        limit = args.limit
-
-        if not youtube_id or not output:
+        if not youtube_id:
             parser.print_usage()
-            raise ValueError('you need to specify a Youtube ID and an output filename')
+            raise ValueError('you need to specify a Youtube ID')
 
-        print('Downloading Youtube comments for video:', youtube_id)
+        sys.stderr.write('Downloading Youtube comments for video: ' + youtube_id)
         count = 0
-        with io.open(output, 'w', encoding='utf8') as fp:
+        if True:
             for comment in download_comments(youtube_id):
                 comment_json = json.dumps(comment, ensure_ascii=False)
-                print(comment_json.decode('utf-8') if isinstance(comment_json, bytes) else comment_json, file=fp)
                 count += 1
-                sys.stdout.write('Downloaded %d comment(s)\r' % count)
-                sys.stdout.flush()
-                if limit and count >= limit:
-                    break
-        print('\nDone!')
+                sys.stderr.write('Downloaded %d comment(s)\r' % count)
+                sys.stderr.flush()
+        sys.stderr.write('\nDone!')
 
 
     except Exception as e:
-        print('Error:', str(e))
+        sys.stderr.write('Error:' + str(e))
         sys.exit(1)
 
 
