@@ -2,16 +2,16 @@
 Simple script for downloading Youtube comments without using the Youtube API. The output is in line delimited JSON.
 
 ### Dependencies
-* Python 2.7+
+* Python 3.6+
 * requests
 * lxml
 * cssselect
 
 The python packages can be installed with
 
-    pip install requests
-    pip install lxml
-    pip install cssselect
+```
+pip3 install -r requirements.txt
+```
 
 ### Usage
 ```
